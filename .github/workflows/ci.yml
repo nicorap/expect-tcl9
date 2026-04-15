@@ -64,12 +64,16 @@ jobs:
         run: make -j$(nproc)
 
       - name: Run Tcl 9 compatibility tests
-        run: make test TESTFLAGS="-file tcl9compat.test -verbose bps"
+        run: |
+          make test TESTFLAGS="-file tcl9compat.test -verbose bps" | tee /tmp/test-out.txt
+          ! grep -qE 'Failed\s+[1-9]' /tmp/test-out.txt
         env:
           LD_LIBRARY_PATH: ${{ runner.temp }}/tcl-install/lib
 
       - name: Run full test suite
-        run: make test TESTFLAGS="-verbose bp"
+        run: |
+          make test TESTFLAGS="-verbose bp" | tee /tmp/test-out.txt
+          ! grep -qE 'Failed\s+[1-9]' /tmp/test-out.txt
         env:
           LD_LIBRARY_PATH: ${{ runner.temp }}/tcl-install/lib
 
@@ -123,11 +127,15 @@ jobs:
         run: make -j$(nproc)
 
       - name: Run Tcl 9 compatibility tests
-        run: make test TESTFLAGS="-file tcl9compat.test -verbose bps"
+        run: |
+          make test TESTFLAGS="-file tcl9compat.test -verbose bps" | tee /tmp/test-out.txt
+          ! grep -qE 'Failed\s+[1-9]' /tmp/test-out.txt
         env:
           LD_LIBRARY_PATH: ${{ runner.temp }}/tcl-install/lib
 
       - name: Run full test suite
-        run: make test TESTFLAGS="-verbose bp"
+        run: |
+          make test TESTFLAGS="-verbose bp" | tee /tmp/test-out.txt
+          ! grep -qE 'Failed\s+[1-9]' /tmp/test-out.txt
         env:
           LD_LIBRARY_PATH: ${{ runner.temp }}/tcl-install/lib
