@@ -17,9 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
