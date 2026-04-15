@@ -10240,22 +10240,22 @@ fi
 # first check for the pure bsd
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for struct sgttyb" >&5
 printf %s "checking for struct sgttyb... " >&6; }
-if test "$cross_compiling" = yes
-then :
-  as_fn_error $? "Expect can't be cross compiled" "$LINENO" 5
-
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <sgtty.h>
-main()
+
+int
+main (void)
 {
+
   struct sgttyb tmp;
-  exit(0);
+
+  ;
+  return 0;
 }
 _ACEOF
-if ac_fn_c_try_run "$LINENO"
+if ac_fn_c_try_compile "$LINENO"
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
@@ -10269,11 +10269,7 @@ printf "%s\n" "no" >&6; }
  ;;
 esac
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
 # mach systems have include files for unimplemented features
 # so avoid doing following test on those systems
@@ -10285,21 +10281,21 @@ if test $mach -eq 0 ; then
   # pty_termios.c is set up to handle pty_termio.
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for struct termio" >&5
 printf %s "checking for struct termio... " >&6; }
-  if test "$cross_compiling" = yes
-then :
-  as_fn_error $? "Expect can't be cross compiled" "$LINENO" 5
-
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <termio.h>
-  main()
-  {
+
+int
+main (void)
+{
+
     struct termio tmp;
-    exit(0);
-  }
+
+  ;
+  return 0;
+}
 _ACEOF
-if ac_fn_c_try_run "$LINENO"
+if ac_fn_c_try_compile "$LINENO"
 then :
   printf "%s\n" "#define HAVE_TERMIO 1" >>confdefs.h
 
@@ -10313,21 +10309,12 @@ printf "%s\n" "no" >&6; }
  ;;
 esac
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
   # now check for the new style ttys (not yet posix)
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for struct termios" >&5
 printf %s "checking for struct termios... " >&6; }
-  if test "$cross_compiling" = yes
-then :
-  as_fn_error $? "Expect can't be cross compiled" "$LINENO" 5
-
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
   /* including termios.h on Solaris 5.6 fails unless inttypes.h included */
@@ -10335,13 +10322,18 @@ else case e in #(
 #  include <inttypes.h>
 #  endif
 #  include <termios.h>
-  main()
-  {
+
+int
+main (void)
+{
+
     struct termios tmp;
-    exit(0);
-  }
+
+  ;
+  return 0;
+}
 _ACEOF
-if ac_fn_c_try_run "$LINENO"
+if ac_fn_c_try_compile "$LINENO"
 then :
   printf "%s\n" "#define HAVE_TERMIOS 1" >>confdefs.h
 
@@ -10355,21 +10347,12 @@ printf "%s\n" "no" >&6; }
    ;;
 esac
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if TCGETS or TCGETA in termios.h" >&5
 printf %s "checking if TCGETS or TCGETA in termios.h... " >&6; }
-if test "$cross_compiling" = yes
-then :
-  as_fn_error $? "Expect can't be cross compiled" "$LINENO" 5
-
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 /* including termios.h on Solaris 5.6 fails unless inttypes.h included */
@@ -10377,15 +10360,20 @@ else case e in #(
 #include <inttypes.h>
 #endif
 #include <termios.h>
-main() {
-#if defined(TCGETS) || defined(TCGETA)
-	return 0;
-#else
-	return 1;
+
+int
+main (void)
+{
+
+#if !defined(TCGETS) && !defined(TCGETA)
+  choke
 #endif
+
+  ;
+  return 0;
 }
 _ACEOF
-if ac_fn_c_try_run "$LINENO"
+if ac_fn_c_try_compile "$LINENO"
 then :
   printf "%s\n" "#define HAVE_TCGETS_OR_TCGETA_IN_TERMIOS_H 1" >>confdefs.h
 
@@ -10398,20 +10386,11 @@ printf "%s\n" "no" >&6; }
  ;;
 esac
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if TIOCGWINSZ in termios.h" >&5
 printf %s "checking if TIOCGWINSZ in termios.h... " >&6; }
-if test "$cross_compiling" = yes
-then :
-  as_fn_error $? "Expect can't be cross compiled" "$LINENO" 5
-
-else case e in #(
-  e) cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 /* including termios.h on Solaris 5.6 fails unless inttypes.h included */
@@ -10419,15 +10398,20 @@ else case e in #(
 #include <inttypes.h>
 #endif
 #include <termios.h>
-main() {
-#ifdef TIOCGWINSZ
-	return 0;
-#else
-	return 1;
+
+int
+main (void)
+{
+
+#ifndef TIOCGWINSZ
+  choke
 #endif
+
+  ;
+  return 0;
 }
 _ACEOF
-if ac_fn_c_try_run "$LINENO"
+if ac_fn_c_try_compile "$LINENO"
 then :
   printf "%s\n" "#define HAVE_TIOCGWINSZ_IN_TERMIOS_H 1" >>confdefs.h
 
@@ -10440,11 +10424,7 @@ printf "%s\n" "no" >&6; }
  ;;
 esac
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
-esac
-fi
-
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
 
 # finally check for Cray style ttys
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Cray-style ptys" >&5

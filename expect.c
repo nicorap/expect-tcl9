@@ -25,7 +25,6 @@ would appreciate credit if this program or parts of it are used.
 # include <unistd.h>
 #endif
 
-#include "tclInt.h"
 
 #include "string.h"
 

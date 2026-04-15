@@ -58,8 +58,7 @@ would appreciate credit if this program or parts of it are used.
 #include <math.h>		/* for log/pow computation in send -h */
 #include <ctype.h>		/* all this for ispunct! */
 
-#include "tclInt.h"		/* need OpenFile */
-/*#include <varargs.h>		tclInt.h drags in varargs.h.  Since Pyramid */
+/*#include <varargs.h>		Since Pyramid */
 /*				objects to including varargs.h twice, just */
 /*				omit this one. */
 
@@ -3545,15 +3544,12 @@ exp_create_commands(interp,c)
     Tcl_Interp *interp;
     struct exp_cmd_data *c;
 {
-    Namespace *globalNsPtr = (Namespace *) Tcl_GetGlobalNamespace(interp);
-    Namespace *currNsPtr   = (Namespace *) Tcl_GetCurrentNamespace(interp);
     char cmdnamebuf[80];
 
     for (;c->name;c++) {
 	/* if already defined, don't redefine */
 	if ((c->flags & EXP_REDEFINE) ||
-		!(Tcl_FindHashEntry(&globalNsPtr->cmdTable,c->name) ||
-			Tcl_FindHashEntry(&currNsPtr->cmdTable,c->name))) {
+		!Tcl_FindCommand(interp, c->name, NULL, 0)) {
 	    if (c->objproc)
 		Tcl_CreateObjCommand2(interp,c->name,
 			c->objproc,c->data,exp_deleteObjProc);

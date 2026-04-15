@@ -8,7 +8,6 @@
 /*#include <varargs.h>		tclInt.h drags in varargs.h.  Since Pyramid */
 /*				objects to including varargs.h twice, just */
 /*				omit this one. */
-#include "tclInt.h"
 #ifdef NO_STDLIB_H
 #include "../compat/stdlib.h"
 #else

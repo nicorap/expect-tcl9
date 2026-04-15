@@ -23,7 +23,6 @@ would appreciate credit if this program or parts of it are used.
 # undef panic
 #endif
 
-#include <tclPort.h>
 #include "expect.h"
 
 #define EXP_CHANNELNAMELEN (16 + TCL_INTEGER_SPACE)

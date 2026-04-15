@@ -25,7 +25,6 @@
 
 #include <errno.h>
 
-#include	"tclInt.h"	/* Internal definitions for Tcl. */
 
 #include "tcl.h"
 

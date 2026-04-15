@@ -712,20 +712,16 @@ fi
 
 # first check for the pure bsd
 AC_MSG_CHECKING([for struct sgttyb])
-AC_TRY_RUN([
+AC_TRY_COMPILE([
 #include <sgtty.h>
-main()
-{
+],[
   struct sgttyb tmp;
-  exit(0);
-}],
+],
         AC_MSG_RESULT(yes)
         AC_DEFINE(HAVE_SGTTYB)
         PTY_TYPE=sgttyb
 ,
         AC_MSG_RESULT(no)
-,
-	AC_MSG_ERROR([Expect can't be cross compiled])
 )
 
 # mach systems have include files for unimplemented features
@@ -737,80 +733,66 @@ if test $mach -eq 0 ; then
   # since that just controls which of pty_XXXX.c file is use and
   # pty_termios.c is set up to handle pty_termio.
   AC_MSG_CHECKING([for struct termio])
-  AC_TRY_RUN([#include <termio.h>
-  main()
-  {
+  AC_TRY_COMPILE([#include <termio.h>
+  ],[
     struct termio tmp;
-    exit(0);
-  }],
+  ],
         AC_DEFINE(HAVE_TERMIO)
         PTY_TYPE=termios
         AC_MSG_RESULT(yes)
 ,
         AC_MSG_RESULT(no)
-,
-	AC_MSG_ERROR([Expect can't be cross compiled])
 )
 
   # now check for the new style ttys (not yet posix)
   AC_MSG_CHECKING([for struct termios])
-  AC_TRY_RUN([
+  AC_TRY_COMPILE([
   /* including termios.h on Solaris 5.6 fails unless inttypes.h included */
 #  ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>
 #  endif
 #  include <termios.h>
-  main()
-  {
+  ],[
     struct termios tmp;
-    exit(0);
-  }],
+  ],
         AC_DEFINE(HAVE_TERMIOS)
         PTY_TYPE=termios
         AC_MSG_RESULT(yes)
   ,
         AC_MSG_RESULT(no)
-  ,
-	AC_MSG_ERROR([Expect can't be cross compiled])
   )
 fi
 
 AC_MSG_CHECKING([if TCGETS or TCGETA in termios.h])
-AC_TRY_RUN([
+AC_TRY_COMPILE([
 /* including termios.h on Solaris 5.6 fails unless inttypes.h included */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
 #include <termios.h>
-main() {
-#if defined(TCGETS) || defined(TCGETA)
-	return 0;
-#else
-	return 1;
+],[
+#if !defined(TCGETS) && !defined(TCGETA)
+  choke
 #endif
-}],
+],
 	AC_DEFINE(HAVE_TCGETS_OR_TCGETA_IN_TERMIOS_H)
 	AC_MSG_RESULT(yes)
 ,
 	AC_MSG_RESULT(no)
-,
-	AC_MSG_ERROR([Expect can't be cross compiled])
 )
 
 AC_MSG_CHECKING([if TIOCGWINSZ in termios.h])
-AC_TRY_RUN([
+AC_TRY_COMPILE([
 /* including termios.h on Solaris 5.6 fails unless inttypes.h included */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
 #include <termios.h>
-main() {
-#ifdef TIOCGWINSZ
-	return 0;
-#else
-	return 1;
+],[
+#ifndef TIOCGWINSZ
+  choke
 #endif
-}],
+],
 	AC_DEFINE(HAVE_TIOCGWINSZ_IN_TERMIOS_H)
 	AC_MSG_RESULT(yes)
 ,
