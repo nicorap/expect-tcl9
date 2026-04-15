@@ -22,6 +22,9 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT ((void *)0)
+#endif
 #include "tcl.h"
 #include "exp_rename.h"
 #include "exp_prog.h"
