@@ -3,6 +3,7 @@
 #include "expect_cf.h"
 #include <stdio.h>
 #include <errno.h>
+#include <signal.h>
 #include <string.h>
 #include <fcntl.h>
 #ifdef HAVE_INTTYPES_H
