@@ -158,6 +158,11 @@ void
 exp_event_disarm_fg(esPtr)
 ExpState *esPtr;
 {
+    /* Guard: Tcl 9's epoll backend panics if asked to remove a file handler
+     * that was never registered.  Only call DeleteChannelHandler when the
+     * channel is actually armed. */
+    if (!esPtr->fg_armed) return;
+
     /*printf("DeleteChannelHandler: %s\r\n",esPtr->name);*/
     Tcl_DeleteChannelHandler(esPtr->channel,exp_channelhandler,(ClientData)esPtr);
 
