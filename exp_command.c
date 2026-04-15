@@ -3500,23 +3500,27 @@ Exp_Tcl8OpenObjCmd(
 	return TCL_ERROR;
     }
 
-    Tcl_Obj *new_objv[4] = {Tcl_NewStringObj("_open.pre_expect", -1)};
-
+    Tcl_Obj *new_objv[4];
+    new_objv[0] = Tcl_NewStringObj("_open.pre_expect", -1);
+    Tcl_IncrRefCount(new_objv[0]);
     for (Tcl_Size i = 1; i < objc; i++)
 	new_objv[i] = objv[i];
 
-    if (Tcl_EvalObjv(interp, objc, new_objv, 0) != TCL_OK)
+    int res = Tcl_EvalObjv(interp, objc, new_objv, 0);
+    Tcl_DecrRefCount(new_objv[0]);
+    if (res != TCL_OK)
 	return TCL_ERROR;
 
-    const char *chan_name = Tcl_GetStringResult(interp);
-    Tcl_DecrRefCount(new_objv[0]);
+    Tcl_Obj *result = Tcl_GetObjResult(interp);
+    Tcl_IncrRefCount(result);
     Tcl_ResetResult(interp);
 
-    Tcl_Channel chan = Tcl_GetChannel(interp, chan_name, NULL);
+    Tcl_Channel chan = Tcl_GetChannel(interp, Tcl_GetString(result), NULL);
     if (chan)
 	Tcl_SetChannelOption(interp, chan, "-profile", "tcl8");
 
-    Tcl_AppendResult(interp, chan_name, NULL);
+    Tcl_SetObjResult(interp, result);
+    Tcl_DecrRefCount(result);
     return TCL_OK;
 }
 

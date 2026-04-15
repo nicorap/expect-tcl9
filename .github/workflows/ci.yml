@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    name: Build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04]
+
+    env:
+      TCL_VERSION: 9.0.3
+      TCL_TAG: core-9-0-3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: sudo apt-get install -y build-essential libreadline-dev
+
+      - name: Cache Tcl ${{ env.TCL_VERSION }}
+        id: cache-tcl
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/tcl-install
+          key: tcl-${{ env.TCL_VERSION }}-${{ matrix.os }}-v1
+
+      - name: Build and install Tcl ${{ env.TCL_VERSION }}
+        if: steps.cache-tcl.outputs.cache-hit != 'true'
+        run: |
+          wget -q "https://github.com/tcltk/tcl/archive/refs/tags/${TCL_TAG}.tar.gz"
+          tar xf "${TCL_TAG}.tar.gz"
+          cd "tcl-${TCL_TAG}/unix"
+          ./configure --prefix="${RUNNER_TEMP}/tcl-install"
+          make -j$(nproc)
+          make install
+
+      - name: Update config.sub
+        run: |
+          curl -fsSL \
+            'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD' \
+            -o tclconfig/config.sub
+
+      - name: Configure Expect
+        run: ./configure --with-tcl="${RUNNER_TEMP}/tcl-install/lib"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Run Tcl 9 compatibility tests
+        run: make test TESTFLAGS="-file tcl9compat.test -verbose bps"
+        env:
+          LD_LIBRARY_PATH: ${{ runner.temp }}/tcl-install/lib
+
+      - name: Run full test suite
+        run: make test TESTFLAGS="-verbose bp"
+        env:
+          LD_LIBRARY_PATH: ${{ runner.temp }}/tcl-install/lib

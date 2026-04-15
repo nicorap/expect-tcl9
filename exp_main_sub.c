@@ -17,7 +17,6 @@
 #endif
 
 #include "tcl.h"
-#include "tclInt.h"
 #include "exp_rename.h"
 #include "exp_prog.h"
 #include "exp_command.h"
@@ -183,10 +182,13 @@ int objc;
 Tcl_Obj *CONST objv[];		/* Argument objects. */
 {
     static char buffer[200];
+    int numLevels = 0;
 
-    Interp *iPtr = (Interp *)interp;
+    if (Tcl_Eval(interp, "info level") == TCL_OK)
+	Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &numLevels);
+    Tcl_ResetResult(interp);
 
-    sprintf(buffer,prompt1_default,iPtr->numLevels,history_nextid(interp));
+    sprintf(buffer,prompt1_default,numLevels,history_nextid(interp));
     Tcl_SetResult(interp,buffer,TCL_STATIC);
     return(TCL_OK);
 }
@@ -274,7 +276,6 @@ Tcl_Obj *eofObj;
     Tcl_Obj *commandPtr = NULL;
     int code;
     int gotPartial;
-    Interp *iPtr = (Interp *)interp;
     int tty_changed = FALSE;
     exp_tty tty_old;
     int was_raw, was_echo;
@@ -311,7 +312,13 @@ Tcl_Obj *eofObj;
 	    if (code == TCL_OK) {
 		expStdoutLogU(Tcl_GetStringResult(interp),1);
 	    }
-	    else expStdoutLog(1,prompt1_default,iPtr->numLevels,history_nextid(interp));
+	    else {
+		int numLevels = 0;
+		if (Tcl_Eval(interp, "info level") == TCL_OK)
+		    Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &numLevels);
+		Tcl_ResetResult(interp);
+		expStdoutLog(1,prompt1_default,numLevels,history_nextid(interp));
+	    }
 	} else {
 	    code = Tcl_Eval(interp,prompt2);
 	    if (code == TCL_OK) {
@@ -369,13 +376,13 @@ Tcl_Obj *eofObj;
 	    Tcl_IncrRefCount(commandPtr);
 	}
 	Tcl_AppendToObj(commandPtr, "\n", 1);
-	if (!TclObjCommandComplete(commandPtr)) {
+	if (!Tcl_CommandComplete(Tcl_GetString(commandPtr))) {
 	    gotPartial = 1;
 	    continue;
 	}
 
 	Tcl_AppendToObj(commandPtr, "\n", 1);
-	if (!TclObjCommandComplete(commandPtr)) {
+	if (!Tcl_CommandComplete(Tcl_GetString(commandPtr))) {
 	    gotPartial = 1;
 	    continue;
 	}
@@ -573,11 +580,11 @@ Tcl_Interp *interp;
      * Needed when expect is dynamically loaded after close has
      * been redefined e.g. the virtual file system in tclkit
      */
-    if (TclRenameCommand(interp, "close", "_close.pre_expect") != TCL_OK) {
+    if (Tcl_Eval(interp, "rename close _close.pre_expect") != TCL_OK) {
         return TCL_ERROR;
     }
- 
-    if (TclRenameCommand(interp, "open", "_open.pre_expect") != TCL_OK) {
+
+    if (Tcl_Eval(interp, "rename open _open.pre_expect") != TCL_OK) {
         return TCL_ERROR;
     }
 

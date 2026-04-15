@@ -589,7 +589,7 @@ ExpBackslash (prefix, str, strlen)
   }
 
   Tcl_UtfBackslash (buf, NULL, dst);
-  TclUtfToUniChar (dst, &ch);
+  Tcl_UtfToUniChar (dst, &ch);
   return ch;
 }
 

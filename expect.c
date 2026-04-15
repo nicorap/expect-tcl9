@@ -743,7 +743,7 @@ string_case_first(	/* INTL */
         while ((*s) && (s < bufend)) {
 	    ch1 = *s++;
             consumed++;
-	    offset = TclUtfToUniChar(p, &ch2);
+	    offset = Tcl_UtfToUniChar(p, &ch2);
 	    if (Tcl_UniCharToLower(ch1) != Tcl_UniCharToLower(ch2)) {
 		break;
 	    }
@@ -778,7 +778,7 @@ string_first(	/* INTL */
         while ((*s) && (s < bufend)) {
 	    ch1 = *s++;
             consumed++;
-	    offset = TclUtfToUniChar(p, &ch2);
+	    offset = Tcl_UtfToUniChar(p, &ch2);
 	    if (ch1 != ch2) {
 		break;
 	    }
@@ -1649,83 +1649,6 @@ expAdjust(ExpState *esPtr)
     }
 }
 
-#if OBSOLETE
-/* Strip parity */
-static void
-expParityStrip(
-    Tcl_Obj *obj,
-    int offsetBytes)
-{
-    char *p, ch;
-    
-    int changed = FALSE;
-    
-    for (p = Tcl_GetString(obj) + offsetBytes;*p;p++) {
-	ch = *p & 0x7f;
-	if (ch != *p) changed = TRUE;
-	else *p &= 0x7f;
-    }
-
-    if (changed) {
-	/* invalidate the unicode rep */
-	if (obj->typePtr->freeIntRepProc) {
-	    obj->typePtr->freeIntRepProc(obj);
-	}
-    }
-}
-
-/* This function is only used when debugging.  It checks when a string's
-   internal UTF is sane and whether an offset into the string appears to
-   be at a UTF boundary.
-*/
-static void
-expValid(
-    Tcl_Obj *obj,
-    int offset)
-{
-  char *s, *end;
-  int len;
-
-  s = Tcl_GetStringFromObj(obj,&len);
-
-  if (offset > len) {
-    printf("offset (%d) > length (%d)\n",offset,len);
-    fflush(stdout);
-    abort();
-  }
-
-  /* first test for null terminator */
-  end = s + len;
-  if (*end != '\0') {
-    printf("obj lacks null terminator\n");
-    fflush(stdout);
-    abort();
-  }
-
-  /* check for valid UTF sequence */
-  while (*s) {
-    Tcl_UniChar uc;
-
-	s += TclUtfToUniChar(s,&uc);
-    if (s > end) {
-      printf("UTF out of sync with terminator\n");
-      fflush(stdout);
-      abort();
-    }
-  }
-  s += offset;
-  while (*s) {
-    Tcl_UniChar uc;
-
-	s += TclUtfToUniChar(s,&uc);
-    if (s > end) {
-      printf("UTF from offset out of sync with terminator\n");
-      fflush(stdout);
-      abort();
-    }
-  }
-}
-#endif /*OBSOLETE*/
 
 /* Strip nulls from object, beginning at offset */
 static int
