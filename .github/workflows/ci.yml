@@ -89,6 +89,7 @@ jobs:
           dnf install -y \
             gcc make wget \
             readline-devel \
+            zlib-devel \
             diffutils \
             which
 
