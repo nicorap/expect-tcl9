@@ -36,10 +36,13 @@ start_dir = 'expect-tcl9-%(version)s-tcl9'
 
 # No -fpermissive needed: type-unsafe code has been removed.
 # No --with-tclinclude needed: private header dependency has been removed.
-configopts = '--with-tcl=$EBROOTTCL/lib'
+# --exec-prefix forces the expect binary and libraries into the Expect
+# install dir rather than the Tcl install dir (TEA default behaviour).
+configopts = '--with-tcl=$EBROOTTCL/lib --exec-prefix=%(installdir)s'
 
 sanity_check_paths = {
     'files': [
+        'bin/expect',
         'bin/autoexpect',
         'bin/unbuffer',
         'share/man/man1/expect.1',
