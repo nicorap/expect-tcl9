@@ -54,8 +54,8 @@ TEA_SETUP_COMPILER
 # This MUST be called after TEA_LOAD_TCLCONFIG / TEA_LOAD_TKCONFIG
 #--------------------------------------------------------------------
 
-#TEA_PUBLIC_TCL_HEADERS
-TEA_PRIVATE_TCL_HEADERS
+TEA_PUBLIC_TCL_HEADERS
+#TEA_PRIVATE_TCL_HEADERS
 
 #--------------------------------------------------------------------
 # You can add more files to clean if your extension creates any extra

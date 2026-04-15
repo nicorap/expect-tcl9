@@ -41,16 +41,11 @@ jobs:
           path: ${{ runner.temp }}/tcl-install
           key: tcl-${{ env.TCL_VERSION }}-${{ matrix.os }}-v1
 
-      # Always extract the tarball so tclInt.h is available for configure,
-      # even on a cache hit where we skip the build step.
-      - name: Download and extract Tcl ${{ env.TCL_VERSION }} source
-        run: |
-          wget -q "https://github.com/tcltk/tcl/archive/refs/tags/${TCL_TAG}.tar.gz"
-          tar xf "${TCL_TAG}.tar.gz"
-
       - name: Build and install Tcl ${{ env.TCL_VERSION }}
         if: steps.cache-tcl.outputs.cache-hit != 'true'
         run: |
+          wget -q "https://github.com/tcltk/tcl/archive/refs/tags/${TCL_TAG}.tar.gz"
+          tar xf "${TCL_TAG}.tar.gz"
           cd "tcl-${TCL_TAG}/unix"
           ./configure --prefix="${RUNNER_TEMP}/tcl-install"
           make -j$(nproc)
@@ -63,10 +58,7 @@ jobs:
             -o tclconfig/config.sub
 
       - name: Configure Expect
-        run: |
-          ./configure \
-            --with-tcl="${RUNNER_TEMP}/tcl-install/lib" \
-            --with-tclinclude="$(pwd)/tcl-${TCL_TAG}/generic"
+        run: ./configure --with-tcl="${RUNNER_TEMP}/tcl-install/lib"
 
       - name: Build
         run: make -j$(nproc)
@@ -108,16 +100,11 @@ jobs:
           path: ${{ runner.temp }}/tcl-install
           key: tcl-${{ env.TCL_VERSION }}-rocky9-v1
 
-      # Always extract the tarball so tclInt.h is available for configure,
-      # even on a cache hit where we skip the build step.
-      - name: Download and extract Tcl ${{ env.TCL_VERSION }} source
-        run: |
-          wget -q "https://github.com/tcltk/tcl/archive/refs/tags/${TCL_TAG}.tar.gz"
-          tar xf "${TCL_TAG}.tar.gz"
-
       - name: Build and install Tcl ${{ env.TCL_VERSION }}
         if: steps.cache-tcl.outputs.cache-hit != 'true'
         run: |
+          wget -q "https://github.com/tcltk/tcl/archive/refs/tags/${TCL_TAG}.tar.gz"
+          tar xf "${TCL_TAG}.tar.gz"
           cd "tcl-${TCL_TAG}/unix"
           ./configure --prefix="${RUNNER_TEMP}/tcl-install"
           make -j$(nproc)
@@ -130,10 +117,7 @@ jobs:
             -o tclconfig/config.sub
 
       - name: Configure Expect
-        run: |
-          ./configure \
-            --with-tcl="${RUNNER_TEMP}/tcl-install/lib" \
-            --with-tclinclude="$(pwd)/tcl-${TCL_TAG}/generic"
+        run: ./configure --with-tcl="${RUNNER_TEMP}/tcl-install/lib"
 
       - name: Build
         run: make -j$(nproc)
