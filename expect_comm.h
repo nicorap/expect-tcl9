@@ -10,6 +10,8 @@ would appreciate credit if this program or parts of it are used.
 #ifndef _EXPECT_COMM_H
 #define _EXPECT_COMM_H
 
+#include "tcl.h"	/* for EXTERN, TCL_TSD_INIT, UCHAR, etc. */
+
 /* common return codes for Expect functions */
 /* The library actually only uses TIMEOUT and EOF */
 #define EXP_ABEOF	-1	/* abnormal eof in Expect */
