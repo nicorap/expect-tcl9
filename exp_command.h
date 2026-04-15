@@ -155,6 +155,11 @@ typedef struct ExpState {
 			/* However, if fg_armed is 0, then the handlers */
 			/* definitely needs to be set.  The significance of */
 			/* this flag is so we can remember to turn it off. */
+    int watch_armed;	/* Non-zero if Tcl_CreateFileHandler has been called
+			 * for this channel (via ExpWatchProc).  Used to
+			 * guard against Tcl_DeleteFileHandler on an fd that
+			 * was never registered — Tcl 9's epoll backend panics
+			 * in that case. */
 #ifdef HAVE_PTYTRAP
     char *slave_name;   /* Full name of slave, i.e., /dev/ttyp0 */
 #endif /* HAVE_PTYTRAP */

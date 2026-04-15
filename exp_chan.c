@@ -405,10 +405,14 @@ ExpWatchProc(instanceData, mask)
 	Tcl_CreateFileHandler(esPtr->fdin, mask,
 		(Tcl_FileProc *) Tcl_NotifyChannel,
 		(ClientData) esPtr->channel);
-    } else {
+	esPtr->watch_armed = 1;
+    } else if (esPtr->watch_armed) {
 	/*printf("  DeleteFileHandler: %d (mask = %d)\r\n",esPtr->fdin,mask);*/
 	Tcl_DeleteFileHandler(esPtr->fdin);
+	esPtr->watch_armed = 0;
     }
+    /* else: no file handler was ever registered, skip delete to avoid
+     * Tcl_Panic in Tcl 9's epoll backend (PlatformEventsControl). */
 }
 
 /*
@@ -742,6 +746,7 @@ expCreateChannel(interp,fdin,fdout,pid)
     esPtr->key = expect_key++;
     esPtr->force_read = FALSE;
     esPtr->fg_armed = FALSE;
+    esPtr->watch_armed = 0;
     esPtr->chan_orig = 0;
     esPtr->fd_slave = EXP_NOFD;
 #ifdef HAVE_PTYTRAP
