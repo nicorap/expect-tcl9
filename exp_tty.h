@@ -9,6 +9,7 @@ would appreciate credit if this program or parts of it are used.
 #define __EXP_TTY_H__
 
 #include "expect_cf.h"
+#include "tcl.h"
 
 extern int exp_dev_tty;
 extern int exp_ioctled_devtty;

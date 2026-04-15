@@ -25,6 +25,14 @@ would appreciate credit if this program or parts of it are used.
 
 #include "expect.h"
 
+/* WAIT_STATUS_TYPE was previously supplied by tclPort.h */
+#ifdef NO_UNION_WAIT
+typedef int WAIT_STATUS_TYPE;
+#else
+#include <sys/wait.h>
+typedef union wait WAIT_STATUS_TYPE;
+#endif
+
 #define EXP_CHANNELNAMELEN (16 + TCL_INTEGER_SPACE)
 
 EXTERN const char *		exp_get_var _ANSI_ARGS_((Tcl_Interp *,char *));
