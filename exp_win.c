@@ -9,6 +9,7 @@ would appreciate credit if you use this file or parts of it.
 
 #include "expect_cf.h"
 #include "tcl.h"
+#include <sys/ioctl.h>
 
 #ifdef NO_STDLIB_H
 #include "../compat/stdlib.h"

@@ -1,0 +1,57 @@
+# Org:    Danish National Genome Center
+# Author: Nicolas Rapin
+# Email:  nra@ngc.dk
+#
+# Tcl 9 compatible fork of Expect 5.45.4:
+#   https://github.com/nicorap/expect-tcl9
+#
+# Changes vs vanilla 5.45.4:
+#   - All internal Tcl API (tclInt.h, TclUtfToUniChar, TclRenameCommand,
+#     Interp struct) replaced with public stubs API
+#   - Channel -profile tcl8 applied to stdin/stdout/stderr and spawned
+#     channels so high bytes pass through without encoding errors
+#   - [open] overridden to also set -profile tcl8
+#   - [case] aliased to [switch] (removed in Tcl 9)
+
+easyblock = 'ConfigureMake'
+
+name = 'Expect'
+version = '5.45.4'
+versionsuffix = '-tcl9'
+
+homepage = 'https://github.com/nicorap/expect-tcl9'
+description = "Expect is a tool for automating interactive applications using Tcl. This build uses a Tcl 9 compatible fork."
+
+toolchain = {'name': 'GCCcore', 'version': '14.3.0'}
+
+dependencies = [
+    ('Tcl', '9.0.1'),
+]
+
+sources = ['v%(version)s-tcl9.tar.gz']
+source_urls = ['https://github.com/nicorap/expect-tcl9/archive/refs/tags/']
+
+# GitHub archives unpack to expect-tcl9-<version>-tcl9/
+start_dir = 'expect-tcl9-%(version)s-tcl9'
+
+# No -fpermissive needed: type-unsafe code has been removed.
+# No --with-tclinclude needed: private header dependency has been removed.
+configopts = '--with-tcl=$EBROOTTCL/lib'
+
+sanity_check_paths = {
+    'files': [
+        'bin/autoexpect',
+        'bin/unbuffer',
+        'share/man/man1/expect.1',
+    ],
+    'dirs': [
+        'include',
+        'share',
+    ],
+}
+
+sanity_check_commands = [
+    'expect -c "puts OK"',
+]
+
+moduleclass = 'tools'

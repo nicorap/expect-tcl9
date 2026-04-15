@@ -14,6 +14,13 @@
 #include <stdlib.h>		/* for malloc */
 #endif
 #include <ctype.h>
+#include <string.h>
+#include <unistd.h>
+
+/* UCHAR was removed from Tcl 9's public tcl.h */
+#ifndef UCHAR
+#  define UCHAR(c) ((unsigned char)(c))
+#endif
 
 #include "expect_comm.h"
 #include "exp_int.h"
@@ -36,6 +43,12 @@ typedef struct ThreadSpecificData {
 				 */
     int logUser;		/* TRUE if user sees interactions on stdout */
 } ThreadSpecificData;
+
+/* TCL_TSD_INIT moved to tclInt.h in Tcl 9; define it here using the public API */
+#ifndef TCL_TSD_INIT
+#define TCL_TSD_INIT(keyPtr) \
+    (ThreadSpecificData *)Tcl_GetThreadData((keyPtr), sizeof(ThreadSpecificData))
+#endif
 
 static Tcl_ThreadDataKey dataKey;
 

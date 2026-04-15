@@ -17,8 +17,15 @@ package require Expect
 log_user 0
 
 proc mktmpfile {} {
-    set path [file tempfile fd]
-    close $fd
+    # Tcl 9: [file tempfile varName] returns the channel; varName gets the path.
+    # Tcl 8: [file tempfile varName] returns the path; varName gets the channel.
+    if {[catch {set chan [file tempfile path]}]} {
+        # Tcl 8 fallback
+        set path [file tempfile chan]
+        close $chan
+    } else {
+        close $chan
+    }
     return $path
 }
 
@@ -159,18 +166,20 @@ test tcl9compat-4.4 {case with -exact flag (switch compat)} {
 # ---------------------------------------------------------------------------
 
 # Exact match of a multi-byte UTF-8 sequence (U+00E9, "é").
+# Write it as a unicode character; Tcl encodes it as UTF-8 (0xC3 0xA9) on disk.
+# The spawned channel (tcl8 profile, utf-8 encoding) decodes it back to U+00E9.
 test tcl9compat-5.1 {exact match of UTF-8 multi-byte sequence} {
     set tmp [mktmpfile]
-    set f [open $tmp wb]
-    puts -nonewline $f "\xc3\xa9\n"
+    set f [open $tmp w]
+    puts -nonewline $f "\u00e9\n"
     close $f
 
     set result NONE
     exp_spawn cat $tmp
     expect {
-        -ex "\xc3\xa9" { set result MATCH }
-        timeout         { set result TIMEOUT }
-        eof             { set result EOF }
+        -ex "\u00e9" { set result MATCH }
+        timeout      { set result TIMEOUT }
+        eof          { set result EOF }
     }
     exp_wait
     file delete $tmp
@@ -180,16 +189,16 @@ test tcl9compat-5.1 {exact match of UTF-8 multi-byte sequence} {
 # Glob match with non-ASCII prefix.
 test tcl9compat-5.2 {glob pattern with non-ASCII character} {
     set tmp [mktmpfile]
-    set f [open $tmp wb]
-    puts -nonewline $f "\xc3\xa9hello\n"
+    set f [open $tmp w]
+    puts -nonewline $f "\u00e9hello\n"
     close $f
 
     set result NONE
     exp_spawn cat $tmp
     expect {
-        "\xc3\xa9*" { set result MATCH }
-        timeout      { set result TIMEOUT }
-        eof          { set result EOF }
+        "\u00e9*" { set result MATCH }
+        timeout   { set result TIMEOUT }
+        eof       { set result EOF }
     }
     exp_wait
     file delete $tmp
@@ -222,7 +231,8 @@ test tcl9compat-5.3 {case-insensitive exact match} {
 # Writing high bytes through the log channel must not raise an error.
 test tcl9compat-6.1 {log_file passes high bytes without encoding error} {
     set tmp [mktmpfile]
-    log_file $tmp
+    # -a writes to log regardless of log_user setting
+    log_file -a $tmp
     # Send high bytes through; they appear in the log.
     set tmp2 [mktmpfile]
     set f [open $tmp2 wb]

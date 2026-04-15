@@ -14,6 +14,8 @@
 #include <time.h>	/* for time(3) */
 
 #include "expect_cf.h"
+#include <fcntl.h>
+#include <unistd.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>

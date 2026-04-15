@@ -190,7 +190,11 @@ static char slave_name[MAXPTYNAMELEN];
 #endif /* HAVE_SCO_CLIST_PTYS */
 
 #ifdef HAVE_OPENPTY
-#include <pty.h>
+#  ifdef __APPLE__
+#    include <util.h>
+#  else
+#    include <pty.h>
+#  endif
 static char master_name[64];
 static char slave_name[64];
 #endif

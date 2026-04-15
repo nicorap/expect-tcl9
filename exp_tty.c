@@ -547,13 +547,13 @@ Exp_SttyCmd(
 #ifdef STTY_READS_STDOUT
 			/* switch "<" to ">" */
 			char original_redirect_char = (*redirect)[0];
-			(*redirect)[0] = '>';
+			((char *)(*redirect))[0] = '>';
 			/* stderr unredirected so we can get it directly! */
 #endif
 			rc = exec_stty(interp,argc,argv0,0);
 #ifdef STTY_READS_STDOUT
 			/* restore redirect - don't know if necessary */
-			(*redirect)[0] = original_redirect_char;
+			((char *)(*redirect))[0] = original_redirect_char;
 #endif
 		}
 	}
