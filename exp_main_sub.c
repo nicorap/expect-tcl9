@@ -19,6 +19,9 @@
 #include <sys/wait.h>
 #endif
 
+#include <stdarg.h>
+#include <stdlib.h>
+#include <dlfcn.h>
 #include "tcl.h"
 #include "exp_rename.h"
 #include "exp_prog.h"
@@ -513,6 +516,39 @@ DeleteCmdInfo (clientData, interp)
 }
 
 
+/*
+ * ExpPanicProc --
+ *
+ *   Custom Tcl panic proc installed to suppress a known Tcl 9.0.x bug:
+ *   PlatformEventsControl (tclEpollNotify.c) calls Tcl_Panic when
+ *   epoll_ctl(EPOLL_CTL_DEL) returns ENOENT or EBADF.  This happens at
+ *   channel-close time because Tcl 9's edge-triggered epoll backend
+ *   auto-removes fds after processing events, so explicit deregistration
+ *   later finds them already gone.  The error is benign — the fd is about
+ *   to be closed anyway.  For all other panics the default abort() behavior
+ *   is preserved.
+ */
+static void
+ExpPanicProc(const char *format, ...)
+{
+    va_list ap;
+    char buf[4096];
+
+    va_start(ap, format);
+    vsnprintf(buf, sizeof(buf), format, ap);
+    va_end(ap);
+
+    /* Suppress harmless epoll cleanup panics (ENOENT / EBADF on DEL). */
+    if (strncmp(buf, "epoll_ctl:", 10) == 0) {
+	return;
+    }
+
+    /* All other panics: print and abort (same as Tcl's default). */
+    fprintf(stderr, "expect: panic: %s\n", buf);
+    fflush(stderr);
+    abort();
+}
+
 int
 Expect_Init(interp)
 Tcl_Interp *interp;
@@ -599,6 +635,20 @@ Tcl_Interp *interp;
     Tcl_CreateExitHandler(Tcl_Release,(ClientData)interp);
 
     if (first_time) {
+	/*
+	 * Suppress Tcl 9.0.x epoll_ctl ENOENT/EBADF panics at channel close.
+	 * Tcl_SetPanicProc is blocked in the Tcl 9 stubs table, so bypass it
+	 * with dlsym(RTLD_DEFAULT) which searches already-loaded libraries
+	 * (including libtcl9.0.so) for the real symbol.
+	 */
+	{
+	    typedef void (PanicProcType)(const char *fmt, ...);
+	    typedef void (*SetPanicFnType)(PanicProcType *);
+	    SetPanicFnType fn = (SetPanicFnType)dlsym(RTLD_DEFAULT,
+		    "Tcl_SetPanicProc");
+	    if (fn) fn(ExpPanicProc);
+	}
+
 	exp_getpid = getpid();
 	exp_init_pty();
 	exp_init_pty_exit();

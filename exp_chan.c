@@ -406,19 +406,18 @@ ExpWatchProc(instanceData, mask)
 		(Tcl_FileProc *) Tcl_NotifyChannel,
 		(ClientData) esPtr->channel);
 	esPtr->watch_armed = 1;
-    } else {
+    } else if (esPtr->watch_armed) {
 	/*
-	 * Tcl 9's epoll backend (PlatformEventsControl) panics when
-	 * EPOLL_CTL_DEL is called for an fd that epoll has already
-	 * auto-removed (ENOENT).  Tcl 9 can silently unregister an fd
-	 * from epoll during internal event processing before we get here,
-	 * so calling Tcl_DeleteFileHandler is unsafe.
-	 *
-	 * We simply clear watch_armed and skip the explicit delete.
-	 * Linux automatically removes closed fds from epoll, so no
-	 * explicit deregistration is needed — the fd is about to be
-	 * closed by ExpClose2Proc anyway.
+	 * Deregister from Tcl's notifier.  If Tcl 9's epoll backend has
+	 * already auto-removed the fd from epoll (edge-triggered), the
+	 * epoll_ctl(EPOLL_CTL_DEL) call inside TclpDeleteFileHandler will
+	 * return ENOENT and Tcl would normally panic.  ExpPanicProc (installed
+	 * at init time) suppresses that specific panic and returns, allowing
+	 * TclpDeleteFileHandler to complete and remove the FileHandler struct
+	 * from Tcl's list.  This prevents a second attempt by FileCloseProc
+	 * during TclFinalizeIOSubsystem from also trying to delete the handler.
 	 */
+	Tcl_DeleteFileHandler(esPtr->fdin);
 	esPtr->watch_armed = 0;
     }
 }
