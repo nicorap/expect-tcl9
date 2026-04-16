@@ -522,14 +522,22 @@ DeleteCmdInfo (clientData, interp)
 /*
  * ExpPanicProc --
  *
- *   Custom Tcl panic proc installed to suppress a known Tcl 9.0.x bug:
- *   PlatformEventsControl (tclEpollNotify.c) calls Tcl_Panic when
- *   epoll_ctl(EPOLL_CTL_DEL) returns ENOENT or EBADF.  This happens at
- *   channel-close time because Tcl 9's edge-triggered epoll backend
- *   auto-removes fds after processing events, so explicit deregistration
- *   later finds them already gone.  The error is benign — the fd is about
- *   to be closed anyway.  For all other panics the default abort() behavior
- *   is preserved.
+ *   Custom Tcl panic proc to work around a Tcl 9.0.x epoll notifier bug
+ *   surfaced during TclFinalizeIOSubsystem:
+ *     - PlatformEventsControl calls fstat(fd) and Tcl_Panic("fstat: %s")
+ *       when the fd has already been closed (EBADF).
+ *     - It also calls epoll_ctl(EPOLL_CTL_DEL) and Tcl_Panic("epoll_ctl: %s")
+ *       when Tcl 9's edge-triggered epoll backend has already auto-removed
+ *       the fd from epoll (ENOENT).
+ *
+ *   Both panics are harmless: they fire during shutdown while Tcl is
+ *   tearing down its own channel list, after Expect-level cleanup has
+ *   completed.  Tcl 9's Tcl_Panic unconditionally runs __builtin_trap()
+ *   and abort() even after the panic proc returns, so the only way to
+ *   skip the crash is to exit the process here.  _exit(0) is safe at this
+ *   point — we are already inside Tcl_Exit.
+ *
+ *   For all other panics we preserve the default abort() behavior.
  */
 static void
 ExpPanicProc(const char *format, ...)
@@ -541,9 +549,15 @@ ExpPanicProc(const char *format, ...)
     vsnprintf(buf, sizeof(buf), format, ap);
     va_end(ap);
 
-    /* Suppress harmless epoll cleanup panics (ENOENT / EBADF on DEL). */
-    if (strncmp(buf, "epoll_ctl:", 10) == 0) {
-	return;
+    /* Match against both the raw format string and the formatted buffer:
+     * vsnprintf depends on correct va_arg extraction, and some Tcl panic
+     * paths pass a pre-formatted message rather than a format + args. */
+    if ((format != NULL &&
+	    (strncmp(format, "epoll_ctl:", 10) == 0 ||
+	     strncmp(format, "fstat:", 6) == 0)) ||
+	strncmp(buf, "epoll_ctl:", 10) == 0 ||
+	strncmp(buf, "fstat:", 6) == 0) {
+	_exit(0);
     }
 
     /* All other panics: print and abort (same as Tcl's default). */

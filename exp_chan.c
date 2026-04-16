@@ -406,18 +406,18 @@ ExpWatchProc(instanceData, mask)
 		(Tcl_FileProc *) Tcl_NotifyChannel,
 		(ClientData) esPtr->channel);
 	esPtr->watch_armed = 1;
-    } else if (esPtr->watch_armed) {
+    } else {
 	/*
-	 * Deregister from Tcl's notifier.  If Tcl 9's epoll backend has
-	 * already auto-removed the fd from epoll (edge-triggered), the
-	 * epoll_ctl(EPOLL_CTL_DEL) call inside TclpDeleteFileHandler will
-	 * return ENOENT and Tcl would normally panic.  ExpPanicProc (installed
-	 * at init time) suppresses that specific panic and returns, allowing
-	 * TclpDeleteFileHandler to complete and remove the FileHandler struct
-	 * from Tcl's list.  This prevents a second attempt by FileCloseProc
-	 * during TclFinalizeIOSubsystem from also trying to delete the handler.
+	 * Do NOT call Tcl_DeleteFileHandler here.  In Tcl 9.0.1 that would
+	 * reach PlatformEventsControl which panics on fstat EBADF (if the fd
+	 * was already closed) or epoll_ctl ENOENT (if the event loop already
+	 * auto-removed the fd).  Worse, Tcl 9's Tcl_Panic unconditionally runs
+	 * __builtin_trap()/abort() even after the panic proc returns, so the
+	 * only way to avoid the crash is to not call the deleter during the
+	 * hot cleanup path.  FileCloseProc will still attempt the delete later
+	 * during TclFinalizeIOSubsystem — ExpPanicProc catches that panic and
+	 * _exit()s cleanly after Expect-level cleanup has completed.
 	 */
-	Tcl_DeleteFileHandler(esPtr->fdin);
 	esPtr->watch_armed = 0;
     }
 }
